@@ -397,4 +397,37 @@ def query_review_recommender(search_query, reviews=review_list, tfidf_matrix=tfi
 
     return print("Here are the 5 worste rated customer reviews based on your topic:\n\n\n",similar_review)
 
+
+# Streamlit app
+def main():
+    st.title("Ryanair Customer Review Analyzer")
+    option = st.sidebar.selectbox("Select Review Type", ("Positive", "Negative"))
+
+    if option == "Positive":
+        st.subheader("Positive Reviews")
+        topic_options = range(6)
+        selected_topic = st.sidebar.selectbox("Select Topic", topic_options)
+        top_reviews = get_top_reviews(lda_positive, positive_df['Clean_All'].tolist(), selected_topic)
+        for i, review in enumerate(top_reviews):
+            st.write(f"**Review {i+1}:**")
+            st.write(review)
+            st.markdown("---")
+
+    elif option == "Negative":
+        st.subheader("Negative Reviews")
+        topic_options = range(6)
+        selected_topic = st.sidebar.selectbox("Select Topic", topic_options)
+        top_reviews = get_top_reviews(lda_negative, negative_df['Clean_All'].tolist(), selected_topic)
+        for i, review in enumerate(top_reviews):
+            st.write(f"**Review {i+1}:**")
+            st.write(review)
+            st.markdown("---")
+
+if __name__ == "__main__":
+    main()
+
+
+
+
+
 query_review_recommender('crew and staff')
