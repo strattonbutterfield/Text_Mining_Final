@@ -7,8 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1pXI54PvnV_fu2gZtTcWXT1hW7c6kyZVZ
 
 """
-pip install praw
-pip install streamlit
+
 import streamlit as st
 from PIL import Image
 import praw
