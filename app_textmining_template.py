@@ -11,7 +11,8 @@ In your own Terminal make sure to install:
 *   `pip install streamlit`
 *   `pip install openai==0.28`
 """
-
+pip install praw
+pip install streamlit
 import streamlit as st
 from PIL import Image
 import praw
