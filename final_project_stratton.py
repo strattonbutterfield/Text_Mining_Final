@@ -8,7 +8,7 @@ Original file is located at
 """
 
 # import required libraries and packages
-pip install praw
+!pip install praw
 import praw
 
 from datetime import datetime
@@ -36,10 +36,7 @@ import requests
 # complete the above instructions
 ryan_air_df = pd.read_csv("/content/ryanair_reviews.csv")
 
-ryan_air_df.head()
-
 ryan_air_df['All_Text'] = ryan_air_df['Comment title'] + ' ' + ryan_air_df['Comment'] #compining the two text columns into 1
-ryan_air_df.head()
 
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -61,8 +58,6 @@ def clean_text(text):
 # Apply the cleaning function to the 'All_Text' column
 ryan_air_df['Clean_All'] = ryan_air_df['All_Text'].apply(clean_text)
 
-ryan_air_df['Clean_All'][5]
-
 """**Split dataset into Positive and Negative Df**
 
 """
@@ -70,25 +65,15 @@ ryan_air_df['Clean_All'][5]
 positive_df = ryan_air_df[ryan_air_df['Overall Rating'] >= 5]
 negative_df = ryan_air_df[ryan_air_df['Overall Rating'] < 5]
 
-positive_df.to_csv('positive_df.csv', index=False)
-negative_df.to_csv('negative_df.csv', index=False)
-
-print(positive_df['Clean_All'].iloc[0])
-
 """**Postive Df to TV**"""
 
 text_list_pos = positive_df['Clean_All'].tolist()
 
-# Print the list
-print(text_list_pos)
 
 import numpy as np
 tv_pos = TfidfVectorizer(min_df = 2, max_df = 0.40, ngram_range = (2,2))
 dtm = tv_pos.fit_transform(text_list_pos)
 vocabulary = np.array(tv_pos.get_feature_names_out())
-# check the shape
-
-dtm.shape
 
 pd.DataFrame(dtm.toarray(), columns= vocabulary, index=['Doc_'+str(i) for i in range(len(text_list_pos))])
 
@@ -140,75 +125,15 @@ doc_topic_matrix = lda.transform(dtm)
 df_doc_topic = pd.DataFrame(doc_topic_matrix, columns=[f'Topic {i}' for i in range(lda.n_components)])
 df_doc_topic
 
-row_295 = positive_df.iloc[295]
-print(row_295)
-print(row_295['All_Text'])
-
-def custom_tokenizer(text):
-    tokens = nltk.word_tokenize(text)
-    #create unigrams
-    tokens = [token for token in tokens if token not in stopwords.words('english')]
-    #create bigrams
-    bigrams = ["_".join(tokens[i:i+2]) for i in range(len(tokens)-1)]
-    return bigrams
-
-tokenized_texts = [custom_tokenizer(text) for text in text_list_pos]                          # create a list of bigram strings for each paper
-print(tokenized_texts)
-
-gensim_dict = Dictionary(tokenized_texts)
-gensim_dict.filter_extremes(no_below=2, no_above= 0.40) # we need to set this to the same filtering we did during our vectorization step
-print(gensim_dict)
-
-# Container to hold coherence values
-coherence_values = []
-
-topic_nums = range(5,15)
-
-
-for num_topics in topic_nums:
-    #fit LDA model for each value of topic_nums
-    lda_model = LatentDirichletAllocation(n_components=num_topics, random_state=42)
-    lda_model.fit(dtm)
-
-    #extract out top features for each topic, replace with vocab word
-    word_ids = lda_model.components_.argsort(axis=1)[:, ::-1][:, :10]
-    topics = [[tv_pos.get_feature_names_out()[i].replace(" ", "_") for i in topic_word_ids] for topic_word_ids in word_ids]
-
-    #print extracted topics
-    print(f"Extracted topics for num_topics={num_topics}:")
-    for idx, topic in enumerate(topics):
-        print(f"Topic {idx}: {topic}")
-
-    # calculate and appending the coherence scores
-    coherence_model_lda = CoherenceModel(topics=topics, texts=tokenized_texts, dictionary=gensim_dict, coherence='u_mass')
-    coherence_lda = coherence_model_lda.get_coherence()
-    print(f"UMass for num_topics={num_topics}: {coherence_lda}\n")
-
-    coherence_values.append(coherence_lda)
-
-# Plotting
-plt.figure(figsize=(10, 15))
-plt.plot(topic_nums, coherence_values, marker='o')
-plt.title('UMass Score vs. Number of Topics')
-plt.xlabel('Number of Topics')
-plt.ylabel('UMass Score')
-plt.grid(True)
-plt.show()
 
 """**Negative DF to TV**"""
 
 text_list_neg = negative_df['Clean_All'].tolist()
 
-# Print the list
-print(text_list_neg)
-
 import numpy as np
 tv_neg = TfidfVectorizer(min_df = 2, max_df = 0.40, ngram_range = (2,2))
 dtm = tv_neg.fit_transform(text_list_neg)
 vocabulary = np.array(tv_neg.get_feature_names_out())
-# check the shape
-
-dtm.shape
 
 pd.DataFrame(dtm.toarray(), columns= vocabulary, index=['Doc_'+str(i) for i in range(len(text_list_neg))])
 
@@ -262,89 +187,31 @@ doc_topic_matrix = lda.transform(dtm)
 df_doc_topic = pd.DataFrame(doc_topic_matrix, columns=[f'Topic {i}' for i in range(lda.n_components)])
 df_doc_topic
 
-def custom_tokenizer(text):
-    tokens = nltk.word_tokenize(text)
-    #create unigrams
-    tokens = [token for token in tokens if token not in stopwords.words('english')]
-    #create bigrams
-    bigrams = ["_".join(tokens[i:i+2]) for i in range(len(tokens)-1)]
-    return bigrams
-
-tokenized_texts = [custom_tokenizer(text) for text in text_list_neg]                          # create a list of bigram strings for each paper
-print(tokenized_texts)
-
-gensim_dict = Dictionary(tokenized_texts)
-gensim_dict.filter_extremes(no_below=2, no_above= 0.40) # we need to set this to the same filtering we did during our vectorization step
-print(gensim_dict)
-
-# Container to hold coherence values
-coherence_values = []
-
-topic_nums = range(5,15)
-
-
-for num_topics in topic_nums:
-    #fit LDA model for each value of topic_nums
-    lda_model = LatentDirichletAllocation(n_components=num_topics, random_state=42)
-    lda_model.fit(dtm)
-
-    #extract out top features for each topic, replace with vocab word
-    word_ids = lda_model.components_.argsort(axis=1)[:, ::-1][:, :10]
-    topics = [[tv_neg.get_feature_names_out()[i].replace(" ", "_") for i in topic_word_ids] for topic_word_ids in word_ids]
-
-    #print extracted topics
-    print(f"Extracted topics for num_topics={num_topics}:")
-    for idx, topic in enumerate(topics):
-        print(f"Topic {idx}: {topic}")
-
-    # calculate and appending the coherence scores
-    coherence_model_lda = CoherenceModel(topics=topics, texts=tokenized_texts, dictionary=gensim_dict, coherence='u_mass')
-    coherence_lda = coherence_model_lda.get_coherence()
-    print(f"UMass for num_topics={num_topics}: {coherence_lda}\n")
-
-    coherence_values.append(coherence_lda)
-
-# Plotting
-plt.figure(figsize=(10, 15))
-plt.plot(topic_nums, coherence_values, marker='o')
-plt.title('UMass Score vs. Number of Topics')
-plt.xlabel('Number of Topics')
-plt.ylabel('UMass Score')
-plt.grid(True)
-plt.show()
-
 """**Similarity Recommedation**
 
 **Positive customer recommendation question answer system**
 """
 
-print(text_list_pos)
-
 tf = TfidfVectorizer(ngram_range =(1,2), min_df = 2, max_df = 0.80)                                 # set parameters for tf-idf for unigrams and bigrams
 tfidf_matrix_pos = tf.fit_transform(text_list_pos)                                         # extract tfidf features from norm_corpus
-# check shape
-tfidf_matrix_pos.shape
+
 
 doc_sim_pos = cosine_similarity(tfidf_matrix_pos)                                                     # compute document similarity by examining the cosine similairty b/w documents in matrix
 doc_sim_df = pd.DataFrame(doc_sim_pos)                                                # take doc_sim, convert to dataframe
-# pull up a heading of the dataframe
-doc_sim_df.head()
 
 review_list = positive_df['Comment'].values
-review_list
+
 
 # extracted the index number for the sample movie
 review_idx = np.where(review_list == 'Flew back from Faro to London Luton Friday 2nd February. Ryanair in both directions was bang on time and smooth flights in both directions.  We always sit in Front for more space and this was very comfortable for just under a 3 hour flight. The cabin crew were polite and efficient with nice sense of humour especially and engagement especially Ethan and his female colleague at the front section. For their human touch [unlike sometimes the stand offish BA crews] merit a 10/10 marking')[0][0]
-review_idx
+
 
 review_similarities = doc_sim_df.iloc[review_idx].values
-review_similarities
+
 
 similar_review_idxs = np.argsort(-review_similarities)[1:6]                                                  # save the movie index of the top 5 highest similarity scores
 similar_review = review_list[similar_review_idxs]                                                          # pull out the movie names associated with those top 5 movie indices
-similar_review
 
-positive_df['Comment'].loc[review_idx]
 
 def query_review_recommender(search_query, reviews=review_list, tfidf_matrix=tfidf_matrix_pos):
     # Transform the search query into its vector form
@@ -362,7 +229,6 @@ query_review_recommender('Value for money')
 
 """**Negative Customer reviews question and answer system**"""
 
-print(text_list_neg)
 
 tf = TfidfVectorizer(ngram_range =(1,2), min_df = 2, max_df = 0.80)                                 # set parameters for tf-idf for unigrams and bigrams
 tfidf_matrix_neg = tf.fit_transform(text_list_neg)                                         # extract tfidf features from norm_corpus
@@ -372,21 +238,21 @@ tfidf_matrix_neg.shape
 doc_sim_neg = cosine_similarity(tfidf_matrix_neg)                                                     # compute document similarity by examining the cosine similairty b/w documents in matrix
 doc_sim_df = pd.DataFrame(doc_sim_neg)                                                # take doc_sim, convert to dataframe
 # pull up a heading of the dataframe
-doc_sim_df.head()
+
 
 review_list = negative_df['Comment'].values
-review_list
+
 
 # extracted the index number for the sample movie
 review_idx = np.where(review_list == "Booked a fight from Copenhagen to Poland though booking.com Somewhere in the email from booking.com it states that checkin must be done online from home. I figure I'll do it in the morning since I have plenty of time. it's low season and I don't have any checked in luggage. I live in Copenhagen not far from the airport. Morning comes and I try to check in online. No luck, apparently they close online checkin 3 hours before the flight. I figure I'll just check in at the airport at those self serve terminals. I arrive at the airport 2 hours before my flight and head for a terminal. Prompt says: kindly go to service desk. Head for service desk. They charge me 42 euro to check me in. The flight itself was 57 euro. They almost charged me the price of the flight just to check me in manually! And they forced me to check in manually by closing online and self-serve checkin. This is Ryanair policy. Apparently. Wizzair and booking are not without blame either, as they decide who they want to do business with.")[0][0]
-review_idx
+
 
 review_similarities = doc_sim_df.iloc[review_idx].values
-review_similarities
+
 
 similar_review_idxs = np.argsort(-review_similarities)[1:6]                                                  # save the movie index of the top 5 highest similarity scores
 similar_review = review_list[similar_review_idxs]                                                          # pull out the movie names associated with those top 5 movie indices
-similar_review
+
 
 def query_review_recommender(search_query, reviews=review_list, tfidf_matrix=tfidf_matrix_neg):
     # Transform the search query into its vector form
@@ -402,7 +268,7 @@ def query_review_recommender(search_query, reviews=review_list, tfidf_matrix=tfi
 
 query_review_recommender('Luggage and Boarding Pass')
 
-!pip install streamlit
+pip install streamlit
 
 import streamlit as st
 from PIL import Image
