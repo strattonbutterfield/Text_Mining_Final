@@ -8,7 +8,7 @@ Original file is located at
 """
 
 # import required libraries and packages
-!pip install praw
+pip install praw
 import praw
 
 from datetime import datetime
