@@ -10,7 +10,6 @@ Original file is located at
 
 import streamlit as st
 from PIL import Image
-import praw
 
 from datetime import datetime
 from datetime import date
