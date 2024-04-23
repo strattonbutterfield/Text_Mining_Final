@@ -70,6 +70,9 @@ ryan_air_df['Clean_All'][5]
 positive_df = ryan_air_df[ryan_air_df['Overall Rating'] >= 5]
 negative_df = ryan_air_df[ryan_air_df['Overall Rating'] < 5]
 
+positive_df.to_csv('positive_df.csv', index=False)
+negative_df.to_csv('negative_df.csv', index=False)
+
 print(positive_df['Clean_All'].iloc[0])
 
 """**Postive Df to TV**"""
@@ -355,7 +358,7 @@ def query_review_recommender(search_query, reviews=review_list, tfidf_matrix=tfi
 
     return print("Here are the top 5 customer reviews based on your topic:\n\n\n",similar_review)
 
-query_review_recommender('Meals during flight')
+query_review_recommender('Value for money')
 
 """**Negative Customer reviews question and answer system**"""
 
@@ -395,39 +398,48 @@ def query_review_recommender(search_query, reviews=review_list, tfidf_matrix=tfi
 
     similar_review = reviews[similar_review_idxs]
 
-    return print("Here are the 5 worste rated customer reviews based on your topic:\n\n\n",similar_review)
+    return print("Here are the 5 worst rated customer reviews based on your topic:\n\n\n",similar_review)
 
+query_review_recommender('Luggage and Boarding Pass')
 
-# Streamlit app
-def main():
-    st.title("Ryanair Customer Review Analyzer")
-    option = st.sidebar.selectbox("Select Review Type", ("Positive", "Negative"))
+!pip install streamlit
 
-    if option == "Positive":
-        st.subheader("Positive Reviews")
-        topic_options = range(6)
-        selected_topic = st.sidebar.selectbox("Select Topic", topic_options)
-        top_reviews = get_top_reviews(lda_positive, positive_df['Clean_All'].tolist(), selected_topic)
-        for i, review in enumerate(top_reviews):
-            st.write(f"**Review {i+1}:**")
-            st.write(review)
-            st.markdown("---")
+import streamlit as st
+from PIL import Image
 
-    elif option == "Negative":
-        st.subheader("Negative Reviews")
-        topic_options = range(6)
-        selected_topic = st.sidebar.selectbox("Select Topic", topic_options)
-        top_reviews = get_top_reviews(lda_negative, negative_df['Clean_All'].tolist(), selected_topic)
-        for i, review in enumerate(top_reviews):
-            st.write(f"**Review {i+1}:**")
-            st.write(review)
-            st.markdown("---")
+# Placeholder function
+def ask_question(question, chat_log):
+    # Implement your logic here
+    pass
 
-if __name__ == "__main__":
-    main()
+def query_review_recommender(search_query, reviews=review_list, tfidf_matrix=tfidf_matrix_neg):
+    # Transform the search query into its vector form
+    query_vector = tf.transform([search_query])
 
+    cosine_similarities = cosine_similarity(query_vector, tfidf_matrix_neg)
 
+    similar_review_idxs = cosine_similarities[0].argsort()[-5:][::-1]
 
+    similar_review = reviews[similar_review_idxs]
 
+    return print("Here are the 5 worst rated customer reviews based on your topic:\n\n\n",similar_review)
 
-query_review_recommender('crew and staff')
+# Streamlit app layout
+st.title('Ryanair Customer Reviews')
+
+# Display the logo
+logo_path = "/content/Ryanair-Logo.wine.png"  # Replace with the path to the logo file
+logo = Image.open(logo_path)
+st.image(logo, caption='')
+
+# Text input for the question
+question = st.text_input('Enter your question here', '')
+
+# Button to submit the question
+if st.button('Ask'):
+    if question:
+        answer, chat_log = ask_question(question, chat_log)
+        for message in chat_log[1:]:
+            role = "role_placeholder"  # Placeholder for role
+            content = "content_placeholder"  # Placeholder for content
+            st.text(f"{role}: {content}")
