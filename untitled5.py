@@ -1,18 +1,18 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
-import nltk
-import re
-from nltk.corpus import stopwords
-from sklearn.feature_extraction.text import TfidfVectorizer
-from nltk.tokenize import word_tokenize
-from nltk.stem import WordNetLemmatizer
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.decomposition import LatentDirichletAllocation
+# import streamlit as st
+# import pandas as pd
+# import numpy as np
+# import nltk
+# import re
+# from nltk.corpus import stopwords
+# from sklearn.feature_extraction.text import TfidfVectorizer
+# from nltk.tokenize import word_tokenize
+# from nltk.stem import WordNetLemmatizer
+# from sklearn.metrics.pairwise import cosine_similarity
+# from sklearn.decomposition import LatentDirichletAllocation
 
-nltk.download('stopwords')
-nltk.download('punkt')
-nltk.download('wordnet')
+# nltk.download('stopwords')
+# nltk.download('punkt')
+# nltk.download('wordnet')
 
 # Load stopwords once to improve efficiency
 stop_words = set(stopwords.words('english'))
